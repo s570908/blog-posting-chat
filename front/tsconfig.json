@@ -1,5 +1,11 @@
 {
   "compilerOptions": {
+    "noImplicitAny": true,
+    "baseUrl": "./src",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "downlevelIteration": true,
+
     "target": "es5",
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
