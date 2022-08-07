@@ -1,42 +1,48 @@
-import { Injectable, StreamableFile } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  StreamableFile,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 // import Aws from 'aws-sdk';
 import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import internal from 'stream';
+import { createReadStream } from 'fs';
+import path from 'path';
 
 @Injectable()
 export class FileService {
   constructor(private readonly configService: ConfigService) {}
 
-  // uploadFile(file: Express.MulterS3.File) {
-  //   if (!file) {
-  //     throw new BadRequestException('파일이 존재하지 않습니다.');
-  //   }
+  uploadFile(file: Express.MulterS3.File) {
+    if (!file) {
+      throw new BadRequestException('파일이 존재하지 않습니다.');
+    }
 
-  //   return { filePath: file.location };
-  // }
+    return { filePath: file.location };
+  }
 
-  // downloadFile() {
-  //   // express 방식 (1)
-  //   // res.set({ 'Content-Disposition': `attachment; filename=set.txt` });
-  //   // const stream = createReadStream(
-  //   //   path.join(process.cwd(), 'uploads/test.txt'),
-  //   // );
-  //   // stream.pipe(res);
+  downloadFile() {
+    // express 방식 (1)
+    // res.set({ 'Content-Disposition': `attachment; filename=set.txt` });
+    // const stream = createReadStream(
+    //   path.join(process.cwd(), 'uploads/test.txt'),
+    // );
+    // stream.pipe(res);
 
-  //   // express 방식 (2)
-  //   // const fileName = encodeURIComponent('한글파일.txt');
-  //   // res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
-  //   // res.sendFile(path.join(process.cwd(), 'uploads/test.txt')); // 내부에서 stream pipe
+    // express 방식 (2)
+    // const fileName = encodeURIComponent('한글파일.txt');
+    // res.setHeader('Content-Disposition', `attachment; filename=${fileName}`);
+    // res.sendFile(path.join(process.cwd(), 'uploads/test.txt')); // 내부에서 stream pipe
 
-  //   // express 방식 (3) passthrough :false 여야함
-  //   // res.download(path.join(process.cwd(), 'uploads/test.txt'), '테스트.txt'); // res.sendfile사용
+    // express 방식 (3) passthrough :false 여야함
+    // res.download(path.join(process.cwd(), 'uploads/test.txt'), '테스트.txt'); // res.sendfile사용
 
-  //   const stream = createReadStream(
-  //     path.join(process.cwd(), 'uploads/test.txt'),
-  //   );
-  //   return new StreamableFile(stream);
-  // }
+    const stream = createReadStream(
+      path.join(process.cwd(), 'uploads/test.txt'),
+    );
+    return new StreamableFile(stream);
+  }
 
   async downloadFileS3() {
     // const s3 = new Aws.S3({

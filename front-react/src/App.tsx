@@ -27,24 +27,22 @@ function App() {
     }
   }, []);
 
-  // const onDownload = useCallback(async () => {
-  //   const response = await axios.get('http://localhost:4000/file/download', {
-  //     responseType: 'blob',
-  //   });
-  //   console.log(response.headers);
-  //   const fileName =
-  //     response.headers['content-disposition'].split('filename=')[1];
+  const onDownload = useCallback(async () => {
+    const response = await axios.get('http://localhost:4000/file/download', {
+      responseType: 'blob',
+    });
+    console.log(response.headers);
+    const fileName =
+      response.headers['content-disposition'].split('filename=')[1];
 
-  //   console.log({ fileName });
-
-  //   const url = window.URL.createObjectURL(new Blob([response.data]));
-  //   const link = document.createElement('a');
-  //   link.href = url;
-  //   link.setAttribute('download', fileName);
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   link.remove();
-  // }, []);
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }, []);
 
   return (
     <>
@@ -56,11 +54,11 @@ function App() {
         ref={inputFileElement}
         onChange={onUpload}
       />
-      {/* <button onClick={onDownload}>파일 다운로드</button> */}
+      <button onClick={onDownload}>파일 다운로드</button>
 
-      <a href="http://localhost:4000/file/download">
+      {/* <a href="http://localhost:4000/file/download">
         <button>파일 다운로드</button>
-      </a>
+      </a> */}
 
       <a href="http://localhost:4000/file/downloads3">
         <button>파일 다운로드 S3</button>
