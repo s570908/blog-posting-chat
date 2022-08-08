@@ -1,68 +1,91 @@
-import { ChangeEvent, useCallback, useRef } from 'react';
-import axios from 'axios';
+import classNames from 'classnames';
+import {
+  ChangeEvent,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { io } from 'socket.io-client';
+import { ChatContainer, Message, MessageForm } from './styles/app.styles';
+
+interface Chat {
+  username: string;
+  message: string;
+}
 
 function App() {
-  const inputFileElement = useRef<HTMLInputElement>(null);
+  const [message, setMessage] = useState<string>('');
+  const [chats, setChats] = useState<Chat[]>([]);
 
-  const onClick = useCallback(() => {
-    inputFileElement.current?.click();
+  const socket = useMemo(() => {
+    return io('http://localhost:4000/chat');
   }, []);
 
-  const onUpload = useCallback(async (e: ChangeEvent<HTMLInputElement>) => {
-    const { files } = e.target;
-    if (!files) return;
+  const messageHandler = useCallback((chat: Chat) => {
+    setChats((prevChats) => [...prevChats, chat]);
+  }, []);
 
-    const formData = new FormData();
-    [...files].forEach((file) => formData.append('file', file));
+  useEffect(() => {
+    const chatContainer = document.querySelector(
+      '.chat_container'
+    ) as HTMLDivElement;
 
-    try {
-      const { data } = await axios.post<string[]>(
-        'http://localhost:4000/file/upload',
-        formData
-      );
-
-      console.log(data);
-    } catch (err) {
-      console.error(err);
+    const { scrollHeight, clientHeight } = chatContainer;
+    if (scrollHeight > clientHeight) {
+      console.log('여기는 무조건 걸리고 있을테고');
+      console.log({ scrollHeight });
+      console.log({ clientHeight });
+      chatContainer.scrollTop = scrollHeight - clientHeight + 27;
     }
+  }, [chats.length]);
+
+  useEffect(() => {
+    socket.on('message', messageHandler);
+
+    return () => {
+      socket.off('message', messageHandler);
+    };
+  }, [messageHandler, socket]);
+
+  const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    setMessage(e.target.value);
   }, []);
 
-  const onDownload = useCallback(async () => {
-    const response = await axios.get('http://localhost:4000/file/download', {
-      responseType: 'blob',
-    });
-    console.log(response.headers);
-    const fileName =
-      response.headers['content-disposition'].split('filename=')[1];
+  const onSendMessage = useCallback(
+    (e: FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!message) return alert('메시지를 입력해 주세요.');
 
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }, []);
+      socket.emit('message', message, (chat: Chat) => {
+        messageHandler(chat);
+        setMessage('');
+      });
+    },
+    [message, messageHandler, socket]
+  );
 
   return (
     <>
-      <button onClick={onClick}>파일 업로드</button>
-      <input
-        type="file"
-        multiple
-        hidden
-        ref={inputFileElement}
-        onChange={onUpload}
-      />
-      <button onClick={onDownload}>파일 다운로드</button>
-
-      {/* <a href="http://localhost:4000/file/download">
-        <button>파일 다운로드</button>
-      </a> */}
-
-      <a href="http://localhost:4000/file/downloads3">
-        <button>파일 다운로드 S3</button>
-      </a>
+      <h1>Web Socket Chat</h1>
+      <ChatContainer className="chat_container">
+        {chats.map((chat, index) => (
+          <Message
+            key={index}
+            className={classNames({
+              my_message: socket.id === chat.username,
+              alarm: !chat.username,
+            })}
+          >
+            {chat.username ? `${chat.username}: ${chat.message}` : chat.message}
+          </Message>
+        ))}
+      </ChatContainer>
+      <MessageForm onSubmit={onSendMessage}>
+        <input type="text" onChange={onChange} value={message} />
+        <button>보내기</button>
+      </MessageForm>
     </>
   );
 }

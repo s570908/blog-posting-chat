@@ -1,11 +1,10 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { FileModule } from './file/file.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [FileModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [EventsModule],
   controllers: [AppController],
   providers: [AppService],
 })
