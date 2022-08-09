@@ -5,33 +5,25 @@ import { socket } from '../../App';
 
 interface CreateRoomResponse {
   success: boolean;
-  message: string;
-}
-
-interface IChatRoom {
-  name: string;
+  payload: string;
 }
 
 const WaitingRoom = () => {
-  const [rooms, setRooms] = useState<IChatRoom[]>([]);
+  const [rooms, setRooms] = useState<string[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const roomListHandler = (rooms: IChatRoom[]) => {
+    const roomListHandler = (rooms: string[]) => {
       setRooms(rooms);
     };
-    const createRoomHandler = (roomName: string) => {
-      setRooms((prevRooms) => [...prevRooms, { name: roomName }]);
+    const createRoomHandler = (newRoom: string) => {
+      setRooms((prevRooms) => [...prevRooms, newRoom]);
     };
     const deleteRoomHandler = (roomName: string) => {
-      setRooms((prevRooms) =>
-        prevRooms.filter((room) => room.name !== roomName)
-      );
+      setRooms((prevRooms) => prevRooms.filter((room) => room !== roomName));
     };
 
-    socket.on('room-list', roomListHandler);
-    socket.emit('room-list');
-
+    socket.emit('room-list', roomListHandler);
     socket.on('create-room', createRoomHandler);
     socket.on('delete-room', deleteRoomHandler);
 
@@ -47,9 +39,9 @@ const WaitingRoom = () => {
     if (!roomName) return alert('방 이름은 반드시 입력해야 합니다.');
 
     socket.emit('create-room', roomName, (response: CreateRoomResponse) => {
-      if (!response.success) return alert(response.message);
+      if (!response.success) return alert(response.payload);
 
-      navigate(`/room/${response.message}`);
+      navigate(`/room/${response.payload}`);
     });
   }, [navigate]);
 
@@ -74,16 +66,16 @@ const WaitingRoom = () => {
           <tr>
             <th>방번호</th>
             <th>방이름</th>
-            <th>참여</th>
+            <th>입장</th>
           </tr>
         </thead>
         <tbody>
           {rooms.map((room, index) => (
-            <tr key={index}>
+            <tr key={room}>
               <td>{index + 1}</td>
-              <td>{room.name}</td>
+              <td>{room}</td>
               <td>
-                <button onClick={onJoinRoom(room.name)}>입장하기</button>
+                <button onClick={onJoinRoom(room)}>입장하기</button>
               </td>
             </tr>
           ))}

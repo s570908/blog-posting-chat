@@ -2,7 +2,6 @@ import classNames from 'classnames';
 import {
   ChangeEvent,
   FormEvent,
-  memo,
   useCallback,
   useEffect,
   useRef,
@@ -24,15 +23,12 @@ interface IChat {
 }
 
 const ChatRoom = () => {
-  const [message, setMessage] = useState<string>('');
   const [chats, setChats] = useState<IChat[]>([]);
+  const [message, setMessage] = useState<string>('');
   const chatContainerEl = useRef<HTMLDivElement>(null);
-  const param = useParams<'roomName'>();
-  const navigate = useNavigate();
 
-  const messageHandler = useCallback((chat: IChat) => {
-    setChats((prevChats) => [...prevChats, chat]);
-  }, []);
+  const { roomName } = useParams<'roomName'>();
+  const navigate = useNavigate();
 
   // 채팅이 길어지면(chats.length) 스크롤이 생성되므로, 스크롤의 위치를 최근 메시지에 위치시키기 위함
   useEffect(() => {
@@ -48,12 +44,15 @@ const ChatRoom = () => {
 
   // message event listener
   useEffect(() => {
+    const messageHandler = (chat: IChat) =>
+      setChats((prevChats) => [...prevChats, chat]);
+
     socket.on('message', messageHandler);
 
     return () => {
       socket.off('message', messageHandler);
     };
-  }, [messageHandler]);
+  }, []);
 
   const onChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setMessage(e.target.value);
@@ -64,31 +63,23 @@ const ChatRoom = () => {
       e.preventDefault();
       if (!message) return alert('메시지를 입력해 주세요.');
 
-      // socket.emit('message', message, (chat: IChat) => {
-      //   messageHandler(chat);
-      //   setMessage('');
-      // });
-      socket.emit(
-        'message',
-        { roomName: param.roomName, message },
-        (chat: IChat) => {
-          messageHandler(chat);
-          setMessage('');
-        }
-      );
+      socket.emit('message', { roomName, message }, (chat: IChat) => {
+        setChats((prevChats) => [...prevChats, chat]);
+        setMessage('');
+      });
     },
-    [message, messageHandler, param.roomName]
+    [message, roomName]
   );
 
   const onLeaveRoom = useCallback(() => {
-    socket.emit('leave-room', param.roomName, () => {
+    socket.emit('leave-room', roomName, () => {
       navigate('/');
     });
-  }, [navigate, param.roomName]);
+  }, [navigate, roomName]);
 
   return (
     <>
-      <h1>Chat Room: {param.roomName} </h1>
+      <h1>Chat Room: {roomName}</h1>
       <LeaveButton onClick={onLeaveRoom}>방 나가기</LeaveButton>
       <ChatContainer ref={chatContainerEl}>
         {chats.map((chat, index) => (
@@ -118,4 +109,4 @@ const ChatRoom = () => {
   );
 };
 
-export default memo(ChatRoom);
+export default ChatRoom;
