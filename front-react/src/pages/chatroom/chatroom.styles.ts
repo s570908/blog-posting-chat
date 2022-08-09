@@ -1,5 +1,11 @@
 import styled from '@emotion/styled';
 
+const LeaveButton = styled.button`
+  margin-bottom: 0.5rem;
+  display: block;
+  margin-left: auto;
+`;
+
 const ChatContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -49,4 +55,4 @@ const MessageForm = styled.form`
   }
 `;
 
-export { ChatContainer, MessageBox, Message, MessageForm };
+export { LeaveButton, ChatContainer, MessageBox, Message, MessageForm };

@@ -37,8 +37,8 @@ export class EventsGateway
       this.logger.log(`"Socket:${id}"이 "Room:${room}"에서 나갔습니다.`);
     });
 
-    this.nsp.adapter.on('delete-room', (room) => {
-      this.logger.log(`"Room:${room}"이 삭제되었습니다.`);
+    this.nsp.adapter.on('delete-room', (roomName) => {
+      this.logger.log(`"Room:${roomName}"이 삭제되었습니다.`);
     });
 
     this.logger.log('웹소켓 서버 초기화 ✅');
@@ -59,10 +59,9 @@ export class EventsGateway
   @SubscribeMessage('message')
   handleMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: string,
+    @MessageBody() message: string,
   ) {
-    // this.nsp.emit('message', { username: socket.id, message: data });
-    socket.broadcast.emit('message', { username: socket.id, message: data });
-    return { username: socket.id, message: data };
+    socket.broadcast.emit('message', { username: socket.id, message });
+    return { username: socket.id, message };
   }
 }
